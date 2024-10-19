@@ -35,3 +35,8 @@ docker-push:
 	@echo "Pushing images..."
 	docker push "$(DOCKER_USER_NAME)/$(IMAGE_NAME):$(docker_version)"
 	docker push "$(DOCKER_USER_NAME)/$(IMAGE_NAME):latest"
+
+init:
+	python3 -m venv venv && source ./venv/bin/activate && pip3 install -r requirements.txt
+run:
+	python3 src/app.py

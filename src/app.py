@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import re
 from flask import Flask, jsonify
+import re
 
 # Function to clean and convert text
 def clean_and_convert(text):
@@ -55,16 +56,59 @@ def get_ipo_data_detail():
                 Forge Auto International NSE SME<span class="badge rounded-pill bg-primary ms-2">Close (Sub:49.28x)</span>
             </a>
             """
-            ipo_name = [item for item in cols[0].find('a').strings][0] 
+            ipo_name = [item for item in cols[0].find('a').strings ][0] 
 
-            remainging_cols = [clean_and_convert(col.get_text()) for col in cols[1:]]
+            """
+            - for Upcoming, Open, Close there is only 1 span, For listed there are 4
+            - last span always contains the subscription details
+            """
+            ipoStatus_subStatus_junk = [ ''.join(item.strings).strip() for item in cols[0].find_all('span')][-1]
+
+            #lambda to clean string into (ipo_status, subscription_percentage) such as ('Upcoming', 2)
+            process_status = lambda s: (
+                ('Upcoming', None) if 'Upcoming' in s else
+                ('Open', float(re.search(r'Sub:(\d+(\.\d+)?)x', s).group(1))) if 'Open' in s else
+                ('Close', float(re.search(r'Sub:(\d+(\.\d+)?)x', s).group(1))) if 'Close' in s else
+                ('Listed', float(re.search(r'Sub:(\d+(\.\d+)?)x', s).group(1))) if 'Sub:' in s else
+                (None, None)
+            )
+            
+            ipo_status, subscription_percent = process_status(ipoStatus_subStatus_junk)
+            
+            # calculating meta fields such as what should be color of 
+            
+            
+
+            # remainging_cols = [clean_and_convert(col.get_text()) for col in cols[1:]]
             remainging_cols = [col.get_text() for col in cols[1:]]
-
+            remainging_cols = [0.0 if item == "--" else item for item in remainging_cols]
             cols = [ipo_name, *remainging_cols]
+
+            """
+            0: name, 1: price, 2:gmp (value)
+            """
+            css_row_color = "FFFFFF" # white
+            try:
+
+                gmp_percent = 100 * (float(cols[2])/float(cols[1]))
+                if gmp_percent < 21:
+                    css_row_color = "f28b82" #red
+                elif gmp_percent < 50:
+                    css_row_color = "fbbc04" # yellow
+                else:
+                    css_row_color = "81c995" # green
+            except:
+                pass 
+
             # Only append rows with the expected number of columns
             if len(cols) == len(column_names):
                 # Create a dictionary for the current row
                 row_data = {column_names[i]: cols[i] for i in range(len(column_names))}
+                row_data['status'] = ipo_status
+                row_data['subs'] = subscription_percent
+                row_data['meta'] = {'row_color_hex':css_row_color}
+                
+
                 json_data.append(row_data)
 
         # Save the JSON data to a file
