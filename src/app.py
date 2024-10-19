@@ -87,16 +87,16 @@ def get_ipo_data_detail():
             """
             0: name, 1: price, 2:gmp (value)
             """
-            css_row_color = "FFFFFF" # white
+            row_class = "table-light" # white
             try:
 
                 gmp_percent = 100 * (float(cols[2])/float(cols[1]))
                 if gmp_percent < 21:
-                    css_row_color = "f28b82" #red
+                    row_class = "table-danger" #red
                 elif gmp_percent < 50:
-                    css_row_color = "fbbc04" # yellow
+                    row_class = "table-warning" # yellow
                 else:
-                    css_row_color = "81c995" # green
+                    row_class = "table-success" # green
             except:
                 pass 
 
@@ -106,8 +106,7 @@ def get_ipo_data_detail():
                 row_data = {column_names[i]: cols[i] for i in range(len(column_names))}
                 row_data['status'] = ipo_status
                 row_data['subs'] = subscription_percent
-                row_data['meta'] = {'row_color_hex':css_row_color}
-                
+                row_data['meta'] = {'row_class':row_class}
 
                 json_data.append(row_data)
 
