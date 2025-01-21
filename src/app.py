@@ -62,7 +62,10 @@ def get_ipo_data_detail():
             - for Upcoming, Open, Close there is only 1 span, For listed there are 4
             - last span always contains the subscription details
             """
-            ipoStatus_subStatus_junk = [ ''.join(item.strings).strip() for item in cols[0].find_all('span')][-1]
+            try:
+                ipoStatus_subStatus_junk = [ ''.join(item.strings).strip() for item in cols[1].find_all('span')][-1]
+            except:
+                ipoStatus_subStatus_junk = ''
 
             #lambda to clean string into (ipo_status, subscription_percentage) such as ('Upcoming', 2)
             process_status = lambda s: (
@@ -90,7 +93,7 @@ def get_ipo_data_detail():
             row_class = "table-light" # white
             try:
 
-                gmp_percent = 100 * (float(cols[2])/float(cols[1]))
+                gmp_percent = 100 * (float(cols[3])/float(cols[2]))
                 if gmp_percent < 21:
                     row_class = "table-danger" #red
                 elif gmp_percent < 50:
